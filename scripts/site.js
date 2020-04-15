@@ -191,8 +191,9 @@ function getLoanApplicationDataFromInputs() {
     la.Factors[1] = hasKids;
     la.Factors[2] = hasLoans;
     la.Factors[3] = hasCreditcards;    
-
-    if (month != "" && day != "" && year != "") {
+    
+    
+    if (Number.isSafeInteger(parseInt(month)) && Number.isSafeInteger(parseInt(day)) && Number.isSafeInteger(parseInt(year))) {
         la.ApplicantDateOfBirth = new Date(year, month, day);
     }
 
@@ -265,20 +266,18 @@ function validateApplication() {
 function generateRickProfile(la) {
     var risk = 3;
 
-    var nameAndTitle = la.ApplicantName;
+    var nameAndTitle = la.ApplicantName.trim().toLowerCase();
 
-    var indexOfMD = nameAndTitle.search("MD");
-    var indexOfMD2 = nameAndTitle.search("M.D");
-    var indexOfMD3 = nameAndTitle.search("M.D.");
-    var indexOfPhD = nameAndTitle.search("PhD");
-    var indexOfPhD2 = nameAndTitle.search("Ph.D");
-    var indexOfPhD3 = nameAndTitle.search("PHD");
-    var indexOfDr = nameAndTitle.search("Dr.");
-    var indexOfDr2 = nameAndTitle.search("DR.");
-
-    if (indexOfMD > -1 || indexOfMD2 > -1 || indexOfMD3 > -1 
-        || indexOfPhD > -1 || indexOfPhD2 > -1 
-        || indexOfPhD3 > -1 || indexOfDr > -1 || indexOfDr2 > -1) {
+    var dr = nameAndTitle.startsWith("dr");
+    var phd = nameAndTitle.startsWith("phd");
+    var phd2 = nameAndTitle.startsWith("ph.d");
+    
+    var md = nameAndTitle.endsWith("md");
+    var md2 = nameAndTitle.endsWith("m.d");
+    var md3 = nameAndTitle.endsWith("m.d.");
+    
+        
+    if (dr || phd || phd2 || md || md2 || md3) {
 
         risk = risk - 1;
     }
@@ -310,29 +309,25 @@ function generateRickProfile(la) {
         risk = risk + 1;
     }
 
-    var purpose = la.LoanPurpose;
+    var purpose = la.LoanPurpose.trim().toLowerCase();
 
-    var indexOfHouse = purpose.search("House");
-    var indexOfHouse2 = purpose.search("house");
-    var indexOfHoliday = purpose.search("Holiday");
-    var indexOfHoliday2 = purpose.search("holiday");
-    var indexOfHoliday3 = purpose.search("vacation");
-    var indexOfHoliday4 = purpose.search("Vacation");
-    var indexOfBusiness = purpose.search("Business");
-    var indexOfBusiness2 = purpose.search("business");
+    let house = purpose.includes("house");
+    let holiday = purpose.includes("holiday");
+    let vacation = purpose.includes("vacation");
+    let business = purpose.includes("business");
+    
 
-    if (indexOfHouse > -1 || indexOfHouse2 > -1) {
+    if (house) {
         //the loan will be used for a house or building project
         risk = risk + 2;
     }
 
-    if (indexOfHoliday > -1 || indexOfHoliday2 > -1 
-        || indexOfHoliday3 > -1 || indexOfHoliday4 > -1) {
+    if (holiday || vacation) {
         //the loan will be used for a holiday
         risk = risk + 3;
     }
 
-    if (indexOfBusiness > -1 || indexOfBusiness2 > -1) {
+    if (business) {
         //the loan will be used for a business
         risk = risk + 1;
     }
@@ -364,7 +359,6 @@ function generateRickProfile(la) {
 
     var summaryText = highlighText `Dear ${la.ApplicantName}, <br>
     your application for ${"$" + la.LoanAmount}, ${reviewText}. <br>
-    Your risk profile is ${riskProfile} <br>
     Your risk profile is ${riskProfile} <br>
     Your unique application code is ${applicationCode}`;
 
